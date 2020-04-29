@@ -59,6 +59,7 @@ class Proxy:
 
         static_dir = str(PKG_PATH.joinpath('resources/frontend'))
         flask_app = Flask(__name__)
+        self.wsgi_app = flask_app
 
         @flask_app.route(frontend_route, methods=['GET'])
         def frontend_root():
