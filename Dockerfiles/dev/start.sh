@@ -1,4 +1,4 @@
-#! /usr/bin/env sh
+#!/usr/bin/env sh
 set -e
 
 # If there's a prestart.sh script in the /app directory, run it before starting
@@ -12,4 +12,4 @@ else
 fi
 
 # Start Gunicorn
-exec gunicorn -k egg:meinheld#gunicorn_worker -c "$GUNICORN_CONF" "$APP_MODULE"
+exec gunicorn -k egg:meinheld#gunicorn_worker -c "$GUNICORN_CONF" --timeout=600 "$APP_MODULE"

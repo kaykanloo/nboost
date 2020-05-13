@@ -1,5 +1,5 @@
-#! /usr/bin/env sh
+#!/usr/bin/env sh
 
-echo "Running inside /app/prestart.sh..."
-
+echo "Running the warmup script..."
+python warmup.py
 echo "DONE"
