@@ -31,7 +31,8 @@ setup(
         'tqdm',
         'jsonpath-ng',
         'flask',
-        'nltk'
+        'nltk',
+        'lxml'
     ],
     extras_require={
         'pt': ['torch', 'transformers==2.7.0'],
