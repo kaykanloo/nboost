@@ -2,6 +2,7 @@
 
 from typing import List, Tuple
 import time
+import lxml.html
 from nboost.plugins import Plugin
 from nboost.delegates import RequestDelegate, ResponseDelegate
 from nboost.helpers import calculate_mrr
@@ -26,11 +27,18 @@ class RerankModelPlugin(Plugin):
                 guesses=response.cids
             )
 
+        choices = response.cvalues
+
+        # Extract only text content from xml result
+        choices = [" ".join(lxml.etree.XPath("//text()")(
+            lxml.html.document_fromstring(choice)
+        )) for choice in response.cvalues]
+
         start_time = time.perf_counter()
 
         ranks, scores = self.rank(
             query=response.request.query,
-            choices=response.cvalues,
+            choices=choices,
             filter_results=response.request.filter_results
         )
         db_row.rerank_time = time.perf_counter() - start_time
