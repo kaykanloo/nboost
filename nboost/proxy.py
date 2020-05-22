@@ -116,6 +116,10 @@ class Proxy:
             except JSONDecodeError:
                 print(requests_response.content)
                 return requests_response.content
+
+            if args.get('no_rerank', 'false').lower() == 'true':
+                return dict_response_to_flask_response(dict_response)
+
             response = ResponseDelegate(dict_response, request)
             response.set_path('body.nboost', {})
             db_row.choices = len(response.choices)
