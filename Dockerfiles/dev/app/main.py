@@ -1,6 +1,12 @@
 import os
 from pathlib import Path
 from environs import Env
+
+import requests
+from flask import request, Response
+from flask import send_from_directory
+from werkzeug.routing import BaseConverter
+
 import nboost
 from nboost.proxy import Proxy
 
@@ -43,6 +49,37 @@ args = {
 
 proxy = Proxy(**args)
 app = proxy.wsgi_app
+app.static_folder = '/app/static/'
+
+# Add support for regex routes
+class RegexConverter(BaseConverter):
+    def __init__(self, url_map, *items):
+        super(RegexConverter, self).__init__(url_map)
+        self.regex = items[0]
+
+app.url_map.converters['regex'] = RegexConverter
+
+@app.route('/', methods=['GET'])
+def compare():
+    return send_from_directory('/app/static/', 'index.html')
+
+# forward all paths start with underscore to uhost
+@app.route('/<regex("_.*"):path>')
+def reverse_proxy(path):
+    resp = requests.request(
+        method=request.method,
+        url=f"{'https' if args['ussl'] else 'http'}://{args['uhost']}:{args['uport']}{request.full_path}",
+        headers={key: value for (key, value) in request.headers if key != 'Host'},
+        data=request.get_data(),
+        cookies=request.cookies,
+        allow_redirects=False)
+
+    excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']
+    headers = [(name, value) for (name, value) in resp.raw.headers.items()
+               if name.lower() not in excluded_headers]
+
+    response = Response(resp.content, resp.status_code, headers)
+    return response
 
 if __name__ == '__main__':
     proxy.run()
